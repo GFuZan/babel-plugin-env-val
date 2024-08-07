@@ -6,6 +6,12 @@ babel 环境变量替换插件
 
 环境变量替换为常量值
 
+## 引入插件
+
+```shell
+ npm install babel-plugin-env-val --save-dev
+```
+
 ## 插件配置
 
 ```js
@@ -38,12 +44,12 @@ module.exports = {
 // 输入内容
 process.env.MY_ENV_NUMBER;
 // 输出内容
-111
+111;
 ```
 
 ```js
 // 输入内容
-process.env.MY_ENV_FUNC('_222');
+process.env.MY_ENV_FUNC("_222");
 // 输出内容
-"MY_ENV_FUNC_222"
+"MY_ENV_FUNC_222";
 ```
