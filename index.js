@@ -2,8 +2,8 @@
  * 环境常量注入插件
  * @param {import('@babel/core')} babel
  * @param {{ [K: string]: string }} options
- * @returns {{ visitor: import('@babel/core').Visitor }} 插件对象
- *@example
+ * @returns {import('@babel/core').PluginObj} 插件对象
+ * @example
  * ```js
  *   // 插件配置
  *   plugins: [
@@ -27,49 +27,34 @@
  * ```
  */
 const plugin = function (babel, options = {}) {
+  const { types: t } = babel;
   return {
     visitor: {
-      Program(rootPath, state) {
-        rootPath.traverse(traverseOptions, {
-          options: state.opts || options,
-          babel,
-        });
+      MemberExpression(path, state) {
+        const opts = state.opts || options;
+
+        if (
+          //
+          t.isIdentifier(path.node.property) &&
+          t.isMemberExpression(path.node.object) &&
+          t.isIdentifier(path.node.object.property) &&
+          t.isIdentifier(path.node.object.object) &&
+          path.node.object.object.name === "process" &&
+          path.node.object.property.name === "env"
+        ) {
+          const envKey = path.node.property.name;
+          const envValue = opts[envKey];
+          path.replaceWithSourceString(
+            envValue === undefined
+              ? "undefined"
+              : typeof envValue === "function"
+              ? String(envValue)
+              : JSON.stringify(envValue)
+          );
+        }
       },
     },
   };
-};
-
-/**
- * @type {import('@babel/core').Visitor}
- */
-const traverseOptions = {
-  Identifier(path, state) {
-    const {
-      options,
-      babel: { template, types: t },
-    } = state;
-    const { name } = path.node;
-    if (
-      name === "process" &&
-      path.key === "object" &&
-      t.isMemberExpression(path.parent) &&
-      t.isIdentifier(path.parent.property) &&
-      path.parent.property.name === "env" &&
-      path.parentPath.key === "object" &&
-      t.isMemberExpression(path.parentPath.parent) &&
-      t.isIdentifier(path.parentPath.parent.property)
-    ) {
-      const envKey = path.parentPath.parent.property.name;
-      const envValue = options[envKey];
-      path.parentPath.parentPath.replaceWithSourceString(
-        envValue === undefined
-          ? "undefined"
-          : typeof envValue === "function"
-          ? String(envValue)
-          : JSON.stringify(envValue)
-      );
-    }
-  },
 };
 
 module.exports = plugin;
