@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-env-val",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "babel 环境变量替换插件",
   "main": "index.js",
   "repository": {
